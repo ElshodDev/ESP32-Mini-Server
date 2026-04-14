@@ -28,10 +28,7 @@ git clone https://github.com/ElshodDev/ESP32-Mini-Server.git
 cd ESP32-Mini-Server
 ```
 
-2. HTML faylini brauzeringizda oching:
-   - `ESP32-Dashboard-Pro.html` - Professional versiya
-   - `ESP32-Mini-Server.html` - Standalone versiya
-   - `index.html` - Oddiy versiya
+2. `index.html` faylini brauzeringizda oching
 
 ### Variant 2: Haqiqiy ESP32 qurilmasi
 
@@ -47,9 +44,7 @@ cd ESP32-Mini-Server
 
 | Fayl | Tavsif |
 |------|--------|
-| `ESP32-Dashboard-Pro.html` | Professional dashboard (tavsiya etiladi) |
-| `ESP32-Mini-Server.html` | Standalone HTML versiya |
-| `index.html` | Oddiy versiya |
+| `index.html` | Professional dashboard (brauzerda oching) |
 | `main.py` | MicroPython versiyasi |
 | `wokwi_sketch/wokwi_sketch.ino` | Arduino C++ kodi |
 

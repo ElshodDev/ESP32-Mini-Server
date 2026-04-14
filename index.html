@@ -3,281 +3,978 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Mini Server — IoT Monitoring Panel</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>ESP32 IoT Dashboard — Professional Monitoring</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-dark: #0a0e1a;
+            --bg-card: rgba(20, 25, 45, 0.7);
+            --accent-cyan: #00d4ff;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #f59e0b;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --border-glow: rgba(0, 212, 255, 0.3);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f2027, #2c5364);
-            color: white;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 50%, #0f172a 100%);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 70%);
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1600px;
             margin: 0 auto;
-        }
-
-        .header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
             padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            text-align: center;
         }
 
-        .header h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: #4dd0e1;
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
-        .wifi-status {
-            font-size: 0.9rem;
-            color: #81c784;
-            margin-bottom: 5px;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.9); }
         }
 
         .clock {
-            font-size: 1.2rem;
-            font-weight: bold;
+            font-size: 18px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            color: var(--accent-cyan);
         }
 
-        .grid {
+        /* Grid Layout */
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: 280px 1fr 320px;
             gap: 20px;
             margin-bottom: 20px;
         }
 
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        @media (max-width: 1400px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .sensor-card {
-            text-align: center;
-        }
-
-        .sensor-value {
-            font-size: 3rem;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .temperature {
-            color: #ff8a65;
-        }
-
-        .humidity {
-            color: #4dd0e1;
-        }
-
-        .device-button {
-            background: #ef5350;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1rem;
-            cursor: pointer;
+        /* Glass Card */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
-            margin: 10px;
-            display: inline-block;
         }
 
-        .device-button.active {
-            background: #4caf50;
+        .glass-card:hover {
+            border-color: var(--border-glow);
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
         }
 
-        .device-button.buzzer.active {
-            background: #4caf50;
-        }
-
-        .device-button.relay.active {
-            background: #2196f3;
-        }
-
-        .chart-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 15px;
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .chart-title {
-            text-align: center;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            color: #4dd0e1;
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .serial-monitor {
-            background: #000;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            padding: 20px;
-            border-radius: 15px;
-            height: 200px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            border: 1px solid #333;
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
         }
 
-        .control-panel {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        /* Left Panel - Parameters */
+        .param-section {
+            margin-bottom: 24px;
+        }
+
+        .param-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .param-value {
+            font-weight: 600;
+            color: var(--accent-cyan);
         }
 
         .slider-container {
-            margin: 15px 0;
+            position: relative;
         }
 
         .slider {
             width: 100%;
-            height: 8px;
-            border-radius: 5px;
-            background: #333;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
             outline: none;
             -webkit-appearance: none;
+            appearance: none;
         }
 
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 25px;
-            height: 25px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background: #4dd0e1;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
             cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }
 
-        .slider::-moz-range-thumb {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: #4dd0e1;
-            cursor: pointer;
+        /* Gauge Container */
+        .gauge-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
-        .slider-label {
+        .gauge-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .gauge-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+        }
+
+        .gauge-canvas {
+            width: 140px;
+            height: 80px;
+            margin: 0 auto 12px;
+        }
+
+        .gauge-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .gauge-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .gauge-value.temp { color: var(--accent-orange); }
+        .gauge-value.hum { color: var(--accent-cyan); }
+
+        /* Center Panel - Main Visualization */
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 1200px) {
+            .metrics-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+        }
+
+        .metric-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
+            align-items: center;
+            margin-bottom: 12px;
         }
 
-        #heatmapCanvas {
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: rgba(0, 212, 255, 0.15);
+        }
+
+        .metric-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .metric-badge.good {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .metric-badge.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-orange);
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .metric-sub {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 8px;
+        }
+
+        /* Chart Container */
+        .chart-wrapper {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .chart-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-sm:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--accent-cyan);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            border: none;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .chart-canvas {
             width: 100%;
-            max-width: 400px;
-            height: 400px;
-            margin: 0 auto;
-            display: block;
+            height: 100%;
         }
 
-        @media (max-width: 768px) {
-            .grid {
+        /* Legend */
+        .chart-legend {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        /* Right Panel - Controls & Logs */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-cyan);
+        }
+
+        .control-btn.active {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--accent-green);
+        }
+
+        .control-btn.active .control-icon {
+            background: var(--accent-green);
+        }
+
+        .control-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(239, 68, 68, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .control-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .control-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Terminal */
+        .terminal {
+            background: #0d1117;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27c93f; }
+
+        .terminal-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-left: 8px;
+        }
+
+        .terminal-body {
+            height: 200px;
+            overflow-y: auto;
+            padding: 16px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .terminal-line {
+            color: #7ee787;
+            margin-bottom: 4px;
+        }
+
+        .terminal-line.timestamp {
+            color: #79c0ff;
+        }
+
+        /* Bottom Section */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .bottom-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .header h1 {
-                font-size: 1.5rem;
+        }
+
+        /* Heatmap */
+        .heatmap-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .heatmap-canvas {
+            border-radius: 8px;
+        }
+
+        /* Color Scale */
+        .color-scale {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+
+        .scale-gradient {
+            width: 200px;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #3b0764, #7c3aed, #06b6d4, #fbbf24);
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 200px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-            
-            .sensor-value {
-                font-size: 2rem;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
+        }
+
+        .animate-in {
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
 <body>
+    <div class="bg-animation"></div>
+    
     <div class="container">
-        <div class="header">
-            <h1>ESP32 Mini Server — IoT Monitoring Panel</h1>
-            <div class="wifi-status">Wokwi-GUEST | IP: 10.10.0.2 | Ulandi</div>
-            <div class="clock" id="clock"></div>
-        </div>
+        <!-- Header -->
+        <header class="header animate-in">
+            <div class="header-left">
+                <div class="logo">📡</div>
+                <div class="header-title">
+                    <h1>ESP32 IoT Dashboard</h1>
+                    <p>Professional Monitoring System | v2.4.1</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    <span>ONLINE</span>
+                </div>
+                <div class="clock" id="clock">00:00:00</div>
+            </div>
+        </header>
 
-        <div class="grid">
-            <div class="card sensor-card">
-                <h3>Harorat</h3>
-                <div class="sensor-value temperature" id="tempValue">25.0°C</div>
-                <div>🌡️ Ichki harorat sensori</div>
-            </div>
-            
-            <div class="card sensor-card">
-                <h3>Namlik</h3>
-                <div class="sensor-value humidity" id="humidityValue">40.0%</div>
-                <div>💧 Namlik sensori</div>
-            </div>
-        </div>
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Gauges -->
+                <div class="gauge-grid animate-in" style="animation-delay: 0.1s;">
+                    <div class="gauge-card">
+                        <canvas class="gauge-canvas" id="tempGauge"></canvas>
+                        <div class="gauge-label">Harorat</div>
+                        <div class="gauge-value temp" id="tempDisplay">25.0°C</div>
+                    </div>
+                    <div class="gauge-card">
+                        <canvas class="gauge-canvas" id="humGauge"></canvas>
+                        <div class="gauge-label">Namlik</div>
+                        <div class="gauge-value hum" id="humDisplay">40.0%</div>
+                    </div>
+                </div>
 
-        <div class="grid">
-            <div class="card">
-                <h3>GPIO Boshqaruv</h3>
-                <button class="device-button buzzer" id="buzzerBtn" onclick="toggleDevice('buzzer')">
-                    🔊 Buzzer (GPIO 26)
-                </button>
-                <button class="device-button relay" id="relayBtn" onclick="toggleDevice('relay')">
-                    ⚡ Relay (GPIO 27)
-                </button>
+                <!-- Parameters -->
+                <div class="glass-card animate-in" style="animation-delay: 0.2s;">
+                    <div class="card-header">
+                        <span class="card-title">Sensor Sozlamalari</span>
+                        <div class="card-icon" style="background: rgba(0, 212, 255, 0.15);">⚙️</div>
+                    </div>
+                    
+                    <div class="param-section">
+                        <div class="param-label">
+                            <span>Harorat</span>
+                            <span class="param-value" id="tempSliderVal">25°C</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="tempSlider" min="-10" max="50" value="25">
+                        </div>
+                    </div>
+                    
+                    <div class="param-section">
+                        <div class="param-label">
+                            <span>Namlik</span>
+                            <span class="param-value" id="humSliderVal">40%</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="humSlider" min="0" max="100" value="40">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WiFi Status -->
+                <div class="glass-card animate-in" style="animation-delay: 0.3s;">
+                    <div class="card-header">
+                        <span class="card-title">Tarmoq Holati</span>
+                        <div class="card-icon" style="background: rgba(16, 185, 129, 0.15);">📶</div>
+                    </div>
+                    <div class="param-section">
+                        <div class="param-label">
+                            <span>SSID</span>
+                            <span class="param-value">Wokwi-GUEST</span>
+                        </div>
+                    </div>
+                    <div class="param-section">
+                        <div class="param-label">
+                            <span>IP Manzil</span>
+                            <span class="param-value">10.10.0.2</span>
+                        </div>
+                    </div>
+                    <div class="param-section">
+                        <div class="param-label">
+                            <span>Signal Kuchi</span>
+                            <span class="param-value">-42 dBm</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
+
+            <!-- Center Panel -->
+            <div class="main-panel">
+                <!-- Metrics Row -->
+                <div class="metrics-row">
+                    <div class="metric-card animate-in" style="animation-delay: 0.1s;">
+                        <div class="metric-header">
+                            <div class="metric-icon">🌡️</div>
+                            <span class="metric-badge good">NORM</span>
+                        </div>
+                        <div class="metric-value" id="metricTemp">25.0°</div>
+                        <div class="metric-label">Harorat (°C)</div>
+                        <div class="metric-sub">-10°C dan 50°C gacha</div>
+                    </div>
+                    
+                    <div class="metric-card animate-in" style="animation-delay: 0.15s;">
+                        <div class="metric-header">
+                            <div class="metric-icon">💧</div>
+                            <span class="metric-badge good">NORM</span>
+                        </div>
+                        <div class="metric-value" id="metricHum">40.0%</div>
+                        <div class="metric-label">Namlik (%)</div>
+                        <div class="metric-sub">0% dan 100% gacha</div>
+                    </div>
+                    
+                    <div class="metric-card animate-in" style="animation-delay: 0.2s;">
+                        <div class="metric-header">
+                            <div class="metric-icon">⏱️</div>
+                            <span class="metric-badge good">ACTIVE</span>
+                        </div>
+                        <div class="metric-value" id="uptime">00:00</div>
+                        <div class="metric-label">Uptime</div>
+                        <div class="metric-sub">Server ishga tushdi</div>
+                    </div>
+                    
+                    <div class="metric-card animate-in" style="animation-delay: 0.25s;">
+                        <div class="metric-header">
+                            <div class="metric-icon">🔋</div>
+                            <span class="metric-badge good">GOOD</span>
+                        </div>
+                        <div class="metric-value">98%</div>
+                        <div class="metric-label">Battery</div>
+                        <div class="metric-sub">USB Power</div>
+                    </div>
+                </div>
+
+                <!-- Line Chart (Rasm 1) -->
+                <div class="chart-wrapper animate-in" style="animation-delay: 0.3s;">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Rasm 1. Harorat va namlik o'zgarishi</div>
+                            <div class="chart-subtitle">Vaqt bo'yicha sensor ma'lumotlari</div>
+                        </div>
+                        <div class="chart-actions">
+                            <button class="btn-sm" onclick="exportCSV()">📊 CSV</button>
+                            <button class="btn-sm btn-primary" onclick="refreshData()">🔄 Yangilash</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas class="chart-canvas" id="lineChart"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #f59e0b;"></div>
+                            <span>Harorat (°C)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #00d4ff;"></div>
+                            <span>Namlik (%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
             <div class="control-panel">
-                <h3>Sensor Simulyatsiya</h3>
-                <div class="slider-container">
-                    <div class="slider-label">
-                        <span>Harorat:</span>
-                        <span id="tempSliderValue">25°C</span>
+                <!-- GPIO Control -->
+                <div class="glass-card animate-in" style="animation-delay: 0.2s;">
+                    <div class="card-header">
+                        <span class="card-title">GPIO Boshqaruv</span>
+                        <div class="card-icon" style="background: rgba(139, 92, 246, 0.15);">🔌</div>
                     </div>
-                    <input type="range" class="slider" id="tempSlider" min="-10" max="50" value="25">
+                    <div class="control-group">
+                        <button class="control-btn" id="buzzerBtn" onclick="toggleDevice('buzzer')">
+                            <div class="control-icon">🔊</div>
+                            <div class="control-info">
+                                <h4>Buzzer</h4>
+                                <p>GPIO 26 - Passive</p>
+                            </div>
+                        </button>
+                        <button class="control-btn" id="relayBtn" onclick="toggleDevice('relay')">
+                            <div class="control-icon">⚡</div>
+                            <div class="control-info">
+                                <h4>Relay</h4>
+                                <p>GPIO 27 - Active Low</p>
+                            </div>
+                        </button>
+                    </div>
                 </div>
-                <div class="slider-container">
-                    <div class="slider-label">
-                        <span>Namlik:</span>
-                        <span id="humiditySliderValue">40%</span>
+
+                <!-- Terminal -->
+                <div class="glass-card animate-in" style="animation-delay: 0.3s; padding: 0; overflow: hidden;">
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <span class="terminal-dot red"></span>
+                            <span class="terminal-dot yellow"></span>
+                            <span class="terminal-dot green"></span>
+                            <span class="terminal-title">Serial Monitor — /dev/ttyUSB0</span>
+                        </div>
+                        <div class="terminal-body" id="terminalBody">
+                            <div class="terminal-line timestamp">[20:45:32] ESP32 Mini Server ishga tushdi...</div>
+                            <div class="terminal-line timestamp">[20:45:33] WiFi tarmoqqa ulandi: Wokwi-GUEST</div>
+                            <div class="terminal-line timestamp">[20:45:33] IP manzil: 10.10.0.2</div>
+                            <div class="terminal-line timestamp">[20:45:34] Server port: 80</div>
+                            <div class="terminal-line timestamp">[20:45:35] Sensorlar tayyor</div>
+                        </div>
                     </div>
-                    <input type="range" class="slider" id="humiditySlider" min="0" max="100" value="40">
+                </div>
+
+                <!-- Export -->
+                <div class="glass-card animate-in" style="animation-delay: 0.4s;">
+                    <div class="card-header">
+                        <span class="card-title">Ma'lumotlarni Export</span>
+                        <div class="card-icon" style="background: rgba(16, 185, 129, 0.15);">📥</div>
+                    </div>
+                    <div class="control-group">
+                        <button class="control-btn" onclick="exportCSV()">
+                            <div class="control-icon" style="background: rgba(59, 130, 246, 0.2);">📄</div>
+                            <div class="control-info">
+                                <h4>CSV Export</h4>
+                                <p>Ma'lumotlarni yuklab olish</p>
+                            </div>
+                        </button>
+                        <button class="control-btn" onclick="exportSnapshot()">
+                            <div class="control-icon" style="background: rgba(245, 158, 11, 0.2);">📷</div>
+                            <div class="control-info">
+                                <h4>Snapshot</h4>
+                                <p>Rasm sifatida saqlash</p>
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="chart-container">
-            <div class="chart-title">Rasm 1. Harorat va namlik o'zgarishi</div>
-            <canvas id="lineChart"></canvas>
-        </div>
+        <!-- Bottom Section -->
+        <div class="bottom-grid">
+            <!-- Bar Chart (Rasm 2) -->
+            <div class="chart-wrapper animate-in" style="animation-delay: 0.4s;">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title">Rasm 2. Real vaqt ma'lumotlari</div>
+                        <div class="chart-subtitle">Joriy sensor qiymatlari</div>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas class="chart-canvas" id="barChart"></canvas>
+                </div>
+            </div>
 
-        <div class="chart-container">
-            <div class="chart-title">Rasm 2. ESP32 Web interfeysida real vaqt ma'lumotlari</div>
-            <canvas id="barChart"></canvas>
-        </div>
+            <!-- Heatmap (Rasm 3) -->
+            <div class="chart-wrapper animate-in" style="animation-delay: 0.5s;">
+                <div class="chart-header">
+                    <div>
+                        <div class="chart-title">Rasm 3. Sensor 2D tasviri</div>
+                        <div class="chart-subtitle">10x10 grid heatmap</div>
+                    </div>
+                </div>
+                <div class="heatmap-container">
+                    <canvas id="heatmapCanvas" width="300" height="300" class="heatmap-canvas"></canvas>
+                </div>
+                <div class="color-scale">
+                    <span style="font-size: 11px; color: var(--text-secondary);">0</span>
+                    <div class="scale-gradient"></div>
+                    <span style="font-size: 11px; color: var(--text-secondary);">50</span>
+                </div>
+                <div style="text-align: center; font-size: 11px; color: var(--text-secondary); margin-top: 8px;">Sensor qiymatlari</div>
+            </div>
 
-        <div class="chart-container">
-            <div class="chart-title">Rasm 3. Sensor ma'lumotlarining 2D tasviri</div>
-            <canvas id="heatmapCanvas"></canvas>
-        </div>
-
-        <div class="serial-monitor" id="serialMonitor">
-            > ESP32 Mini Server ishga tushdi...<br>
-            > WiFi tarmoqqa ulandi: Wokwi-GUEST<br>
-            > IP manzil: 10.10.0.2<br>
-            > Server port: 80<br>
-            > Sensorlar tayyor<br>
+            <!-- System Info -->
+            <div class="glass-card animate-in" style="animation-delay: 0.6s;">
+                <div class="card-header">
+                    <span class="card-title">Tizim Ma'lumotlari</span>
+                    <div class="card-icon" style="background: rgba(245, 158, 11, 0.15);">💻</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="param-section">
+                        <div class="param-label">
+                            <span>Chip Model</span>
+                            <span class="param-value">ESP32-D0WDQ6</span>
+                        </div>
+                    </div>
+                    <div class="param-section">
+                        <div class="param-label">
+                            <span>CPU Frequency</span>
+                            <span class="param-value">240 MHz</span>
+                        </div>
+                    </div>
+                    <div class="param-section">
+                        <div class="param-label">
+                            <span>Flash Size</span>
+                            <span class="param-value">4 MB</span>
+                        </div>
+                    </div>
+                    <div class="param-section">
+                        <div class="param-label">
+                            <span>Free Heap</span>
+                            <span class="param-value">186.2 KB</span>
+                        </div>
+                    </div>
+                    <div class="param-section">
+                        <div class="param-label">
+                            <span>SDK Version</span>
+                            <span class="param-value">v4.4.4</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -287,6 +984,7 @@
         let humidity = 40.0;
         let buzzerState = false;
         let relayState = false;
+        let startTime = Date.now();
         let tempHistory = [22, 24, 24, 25, 27, 27, 28];
         let humidityHistory = [40, 43, 44, 45, 47, 48, 50];
         let timeLabels = ['0', '1', '2', '3', '4', '5', '6'];
@@ -294,18 +992,33 @@
         // Clock update
         function updateClock() {
             const now = new Date();
-            const timeString = now.toLocaleTimeString('uz-UZ');
+            const timeString = now.toLocaleTimeString('uz-UZ', { hour12: false });
             document.getElementById('clock').textContent = timeString;
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Serial Monitor
+        // Uptime
+        function updateUptime() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const hours = Math.floor(elapsed / 3600);
+            const minutes = Math.floor((elapsed % 3600) / 60);
+            const secs = elapsed % 60;
+            document.getElementById('uptime').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        setInterval(updateUptime, 1000);
+
+        // Terminal
         function addLog(message) {
-            const monitor = document.getElementById('serialMonitor');
-            const timestamp = new Date().toLocaleTimeString('uz-UZ');
-            monitor.innerHTML += `> [${timestamp}] ${message}<br>`;
-            monitor.scrollTop = monitor.scrollHeight;
+            const terminal = document.getElementById('terminalBody');
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('uz-UZ', { hour12: false });
+            const line = document.createElement('div');
+            line.className = 'terminal-line timestamp';
+            line.textContent = `[${timeStr}] ${message}`;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
         }
 
         // Device control
@@ -314,116 +1027,80 @@
                 buzzerState = !buzzerState;
                 const btn = document.getElementById('buzzerBtn');
                 btn.classList.toggle('active');
-                addLog(`Buzzer ${buzzerState ? 'yoqildi' : 'o\'chirildi'} (GPIO 26)`);
+                addLog(`Buzzer ${buzzerState ? 'YOQILDI' : "O'CHIRILDI"} (GPIO 26)`);
             } else if (device === 'relay') {
                 relayState = !relayState;
                 const btn = document.getElementById('relayBtn');
                 btn.classList.toggle('active');
-                addLog(`Relay ${relayState ? 'yoqildi' : 'o\'chirildi'} (GPIO 27)`);
+                addLog(`Relay ${relayState ? 'YOQILDI' : "O'CHIRILDI"} (GPIO 27)`);
             }
+        }
+
+        // Draw Gauge
+        function drawGauge(canvasId, value, min, max, color) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            canvas.width = 140;
+            canvas.height = 80;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height - 10;
+            const radius = 60;
+            
+            // Background arc
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, 0);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            
+            // Value arc
+            const percent = (value - min) / (max - min);
+            const endAngle = Math.PI + (Math.PI * percent);
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, endAngle);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            
+            // Glow effect
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
         }
 
         // Sensor update
         function updateSensor() {
-            // Add small random variation
             temperature += (Math.random() - 0.5) * 0.5;
             humidity += (Math.random() - 0.5) * 1.0;
             
-            // Keep within bounds
             temperature = Math.max(-10, Math.min(50, temperature));
             humidity = Math.max(0, Math.min(100, humidity));
             
-            // Update display
-            document.getElementById('tempValue').textContent = temperature.toFixed(1) + '°C';
-            document.getElementById('humidityValue').textContent = humidity.toFixed(1) + '%';
+            // Update displays
+            document.getElementById('tempDisplay').textContent = temperature.toFixed(1) + '°C';
+            document.getElementById('humDisplay').textContent = humidity.toFixed(1) + '%';
+            document.getElementById('metricTemp').textContent = temperature.toFixed(1) + '°';
+            document.getElementById('metricHum').textContent = humidity.toFixed(1) + '%';
             
             // Update sliders
             document.getElementById('tempSlider').value = temperature;
-            document.getElementById('humiditySlider').value = humidity;
-            document.getElementById('tempSliderValue').textContent = temperature.toFixed(1) + '°C';
-            document.getElementById('humiditySliderValue').textContent = humidity.toFixed(1) + '%';
+            document.getElementById('humSlider').value = humidity;
+            document.getElementById('tempSliderVal').textContent = temperature.toFixed(1) + '°C';
+            document.getElementById('humSliderVal').textContent = humidity.toFixed(1) + '%';
             
-            // Update charts
-            updateCharts();
+            // Update gauges
+            drawGauge('tempGauge', temperature, -10, 50, '#f59e0b');
+            drawGauge('humGauge', humidity, 0, 100, '#00d4ff');
             
-            addLog(`Sensor o'qildi: Harorat=${temperature.toFixed(1)}°C, Namlik=${humidity.toFixed(1)}%`);
-        }
-
-        // Slider controls
-        document.getElementById('tempSlider').addEventListener('input', function(e) {
-            temperature = parseFloat(e.target.value);
-            document.getElementById('tempValue').textContent = temperature.toFixed(1) + '°C';
-            document.getElementById('tempSliderValue').textContent = temperature.toFixed(1) + '°C';
-            updateCharts();
-            addLog(`Harorat sozlandi: ${temperature.toFixed(1)}°C`);
-        });
-
-        document.getElementById('humiditySlider').addEventListener('input', function(e) {
-            humidity = parseFloat(e.target.value);
-            document.getElementById('humidityValue').textContent = humidity.toFixed(1) + '%';
-            document.getElementById('humiditySliderValue').textContent = humidity.toFixed(1) + '%';
-            updateCharts();
-            addLog(`Namlik sozlandi: ${humidity.toFixed(1)}%`);
-        });
-
-        // Line Chart
-        const lineCtx = document.getElementById('lineChart').getContext('2d');
-        const lineChart = new Chart(lineCtx, {
-            type: 'line',
-            data: {
-                labels: timeLabels,
-                datasets: [{
-                    label: 'Harorat (°C)',
-                    data: tempHistory,
-                    borderColor: '#ff8a65',
-                    backgroundColor: 'rgba(255, 138, 101, 0.1)',
-                    tension: 0.1
-                }, {
-                    label: 'Namlik (%)',
-                    data: humidityHistory,
-                    borderColor: '#4dd0e1',
-                    backgroundColor: 'rgba(77, 208, 225, 0.1)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 50
-                    }
-                }
-            }
-        });
-
-        // Bar Chart
-        const barCtx = document.getElementById('barChart').getContext('2d');
-        const barChart = new Chart(barCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Harorat', 'Namlik'],
-                datasets: [{
-                    label: 'Qiymatlar',
-                    data: [temperature, humidity],
-                    backgroundColor: ['#ff8a65', '#4dd0e1']
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 50
-                    }
-                }
-            }
-        });
-
-        // Update charts
-        function updateCharts() {
-            // Update line chart with new data point
-            if (tempHistory.length > 10) {
+            // Update history
+            if (tempHistory.length > 20) {
                 tempHistory.shift();
                 humidityHistory.shift();
                 timeLabels.shift();
@@ -432,59 +1109,280 @@
             humidityHistory.push(humidity);
             timeLabels.push(timeLabels.length.toString());
             
-            lineChart.data.labels = timeLabels;
-            lineChart.data.datasets[0].data = tempHistory;
-            lineChart.data.datasets[1].data = humidityHistory;
-            lineChart.update();
-
-            // Update bar chart
-            barChart.data.datasets[0].data = [temperature, humidity];
-            barChart.update();
+            // Update charts
+            drawLineChart();
+            drawBarChart();
+            
+            addLog(`Sensor: T=${temperature.toFixed(1)}C, H=${humidity.toFixed(1)}%`);
         }
 
-        // Heatmap
+        // Slider controls
+        document.getElementById('tempSlider').addEventListener('input', function(e) {
+            temperature = parseFloat(e.target.value);
+            document.getElementById('tempDisplay').textContent = temperature.toFixed(1) + '°C';
+            document.getElementById('tempSliderVal').textContent = temperature.toFixed(1) + '°C';
+            document.getElementById('metricTemp').textContent = temperature.toFixed(1) + '°';
+            drawGauge('tempGauge', temperature, -10, 50, '#f59e0b');
+            drawBarChart();
+        });
+
+        document.getElementById('humSlider').addEventListener('input', function(e) {
+            humidity = parseFloat(e.target.value);
+            document.getElementById('humDisplay').textContent = humidity.toFixed(1) + '%';
+            document.getElementById('humSliderVal').textContent = humidity.toFixed(1) + '%';
+            document.getElementById('metricHum').textContent = humidity.toFixed(1) + '%';
+            drawGauge('humGauge', humidity, 0, 100, '#00d4ff');
+            drawBarChart();
+        });
+
+        // Line Chart (Rasm 1)
+        function drawLineChart() {
+            const canvas = document.getElementById('lineChart');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const padding = { top: 20, right: 30, bottom: 40, left: 50 };
+            const chartWidth = canvas.width - padding.left - padding.right;
+            const chartHeight = canvas.height - padding.top - padding.bottom;
+            
+            // Grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + (chartHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(padding.left + chartWidth, y);
+                ctx.stroke();
+            }
+            
+            // Y-axis labels
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const value = 50 - i * 10;
+                const y = padding.top + (chartHeight / 5) * i + 4;
+                ctx.fillText(value, padding.left - 10, y);
+            }
+            
+            // X-axis labels
+            ctx.textAlign = 'center';
+            const stepX = chartWidth / (timeLabels.length - 1 || 1);
+            const maxLabels = Math.min(timeLabels.length, 10);
+            for (let i = 0; i < maxLabels; i++) {
+                const x = padding.left + stepX * i;
+                ctx.fillText(timeLabels[i] || i, x, canvas.height - 15);
+            }
+            
+            // Temperature line with gradient fill
+            if (tempHistory.length > 1) {
+                ctx.beginPath();
+                tempHistory.forEach((temp, i) => {
+                    const x = padding.left + stepX * i;
+                    const y = padding.top + chartHeight - (temp / 50) * chartHeight;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                
+                // Gradient fill
+                ctx.lineTo(padding.left + stepX * (tempHistory.length - 1), padding.top + chartHeight);
+                ctx.lineTo(padding.left, padding.top + chartHeight);
+                ctx.closePath();
+                const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
+                gradient.addColorStop(0, 'rgba(245, 158, 11, 0.3)');
+                gradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Line
+                ctx.beginPath();
+                tempHistory.forEach((temp, i) => {
+                    const x = padding.left + stepX * i;
+                    const y = padding.top + chartHeight - (temp / 50) * chartHeight;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+            
+            // Humidity line with gradient fill
+            if (humidityHistory.length > 1) {
+                ctx.beginPath();
+                humidityHistory.forEach((hum, i) => {
+                    const x = padding.left + stepX * i;
+                    const y = padding.top + chartHeight - (hum / 50) * chartHeight;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                
+                // Gradient fill
+                ctx.lineTo(padding.left + stepX * (humidityHistory.length - 1), padding.top + chartHeight);
+                ctx.lineTo(padding.left, padding.top + chartHeight);
+                ctx.closePath();
+                const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
+                gradient.addColorStop(0, 'rgba(0, 212, 255, 0.3)');
+                gradient.addColorStop(1, 'rgba(0, 212, 255, 0.0)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Line
+                ctx.beginPath();
+                humidityHistory.forEach((hum, i) => {
+                    const x = padding.left + stepX * i;
+                    const y = padding.top + chartHeight - (hum / 50) * chartHeight;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.strokeStyle = '#00d4ff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+        }
+
+        // Bar Chart (Rasm 2)
+        function drawBarChart() {
+            const canvas = document.getElementById('barChart');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const padding = { top: 40, right: 30, bottom: 60, left: 60 };
+            const chartWidth = canvas.width - padding.left - padding.right;
+            const chartHeight = canvas.height - padding.top - padding.bottom;
+            
+            // Y-axis
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, padding.top + chartHeight);
+            ctx.stroke();
+            
+            // Grid and labels
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'right';
+            
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + chartHeight - (chartHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(padding.left + chartWidth, y);
+                ctx.stroke();
+                ctx.fillText((i * 10).toString(), padding.left - 10, y + 4);
+            }
+            
+            // Bars
+            const barWidth = chartWidth / 6;
+            const tempHeight = (temperature / 50) * chartHeight;
+            const humHeight = (humidity / 50) * chartHeight;
+            
+            // Temperature bar with gradient
+            const tempGradient = ctx.createLinearGradient(0, padding.top + chartHeight - tempHeight, 0, padding.top + chartHeight);
+            tempGradient.addColorStop(0, '#fbbf24');
+            tempGradient.addColorStop(1, '#f59e0b');
+            ctx.fillStyle = tempGradient;
+            ctx.fillRect(padding.left + barWidth * 0.8, padding.top + chartHeight - tempHeight, barWidth * 0.8, tempHeight);
+            
+            // Temperature value on bar
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 14px Inter';
+            ctx.fillText(temperature.toFixed(1) + '°', padding.left + barWidth * 1.2, padding.top + chartHeight - tempHeight - 10);
+            
+            // Humidity bar with gradient
+            const humGradient = ctx.createLinearGradient(0, padding.top + chartHeight - humHeight, 0, padding.top + chartHeight);
+            humGradient.addColorStop(0, '#38bdf8');
+            humGradient.addColorStop(1, '#3b82f6');
+            ctx.fillStyle = humGradient;
+            ctx.fillRect(padding.left + barWidth * 2.8, padding.top + chartHeight - humHeight, barWidth * 0.8, humHeight);
+            
+            // Humidity value on bar
+            ctx.fillText(humidity.toFixed(1) + '%', padding.left + barWidth * 3.2, padding.top + chartHeight - humHeight - 10);
+            
+            // X-axis labels
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = '14px Inter';
+            ctx.fillText('Harorat', padding.left + barWidth * 1.2, padding.top + chartHeight + 25);
+            ctx.fillText('Namlik', padding.left + barWidth * 3.2, padding.top + chartHeight + 25);
+            
+            // Y-axis title
+            ctx.save();
+            ctx.translate(20, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.fillText('Qiymatlar', 0, 0);
+            ctx.restore();
+        }
+
+        // Heatmap (Rasm 3)
         function drawHeatmap() {
             const canvas = document.getElementById('heatmapCanvas');
             const ctx = canvas.getContext('2d');
             const gridSize = 10;
-            const cellSize = 40;
+            const cellSize = 30;
             
-            canvas.width = gridSize * cellSize;
-            canvas.height = gridSize * cellSize;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             for (let i = 0; i < gridSize; i++) {
                 for (let j = 0; j < gridSize; j++) {
                     const value = Math.random() * 50;
-                    const hue = 240 - (value * 4); // Blue to yellow
-                    ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
-                    ctx.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
-                    
-                    // Add grid lines
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-                    ctx.strokeRect(j * cellSize, i * cellSize, cellSize, cellSize);
+                    const hue = 240 + (value / 50) * 60; // Purple to yellow
+                    const lightness = 30 + (value / 50) * 30;
+                    ctx.fillStyle = `hsl(${hue}, 70%, ${lightness}%)`;
+                    ctx.fillRect(j * cellSize, i * cellSize, cellSize - 1, cellSize - 1);
                 }
-            }
-            
-            // Add axis labels
-            ctx.fillStyle = 'white';
-            ctx.font = '12px Arial';
-            ctx.textAlign = 'center';
-            
-            for (let i = 0; i <= 8; i++) {
-                // X axis
-                ctx.fillText(i.toString(), i * cellSize + cellSize/2, canvas.height - 5);
-                // Y axis
-                ctx.fillText(i.toString(), 10, i * cellSize + cellSize/2 + 5);
             }
         }
 
+        // Export functions
+        function exportCSV() {
+            let csv = 'Time,Temperature,Humidity\n';
+            for (let i = 0; i < tempHistory.length; i++) {
+                csv += `${timeLabels[i]},${tempHistory[i].toFixed(2)},${humidityHistory[i].toFixed(2)}\n`;
+            }
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ESP32-data-${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            addLog('CSV export qilindi');
+        }
+
+        function exportSnapshot() {
+            addLog('Snapshot saqlandi');
+            alert('Snapshot saqlandi! (Demo)');
+        }
+
+        function refreshData() {
+            updateSensor();
+            addLog('Ma\'lumotlar yangilandi');
+        }
+
         // Initialize
+        drawGauge('tempGauge', temperature, -10, 50, '#f59e0b');
+        drawGauge('humGauge', humidity, 0, 100, '#00d4ff');
+        drawLineChart();
+        drawBarChart();
         drawHeatmap();
+        
         setInterval(updateSensor, 2000);
         setInterval(drawHeatmap, 5000);
-
+        
         // Initial log
-        addLog('Barcha tizimlar tayyor. Monitoring boshlandi.');
+        addLog('Dashboard ishga tushdi. Barcha tizimlar tayyor.');
     </script>
 </body>
 </html>
