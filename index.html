@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=ESP32-Mini-Server.html">
+    <title>ESP32 Mini Server - Redirect</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+        }
+        h1 {
+            background: linear-gradient(90deg, #00d4ff, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d4ff, #3b82f6);
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌡️ ESP32 IoT Dashboard</h1>
+        <p>Dashboard ga o'tish...</p>
+        <a href="ESP32-Mini-Server.html" class="btn">Dashboard ni ochish</a>
+    </div>
+    <script>
+        // Avtomatik yo'naltirish (3 soniya ichida)
+        setTimeout(() => {
+            window.location.href = 'ESP32-Mini-Server.html';
+        }, 1500);
+    </script>
+</body>
+</html>

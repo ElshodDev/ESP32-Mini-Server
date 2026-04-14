@@ -8,6 +8,11 @@ ESP32 mikrokontrolleri asosida yaratilgan mini web server. IoT (Internet of Thin
 
 📁 **GitHub Repository:** https://github.com/ElshodDev/ESP32-Mini-Server
 
+## HTML ni yuklab olish
+
+1. GitHub dan `ESP32-Mini-Server.html` faylini yuklab oling
+2. Brauzerda oching — dashboard to'liq ishlaydi!
+
 ## Xususiyatlar
 
 - 🌡️ Real vaqt harorat va namlik monitoringi
@@ -28,7 +33,7 @@ git clone https://github.com/ElshodDev/ESP32-Mini-Server.git
 cd ESP32-Mini-Server
 ```
 
-2. `index.html` faylini brauzeringizda oching
+2. `ESP32-Mini-Server.html` faylini brauzeringizda oching (yoki GitHub Pages linkiga bosing)
 
 ### Variant 2: Haqiqiy ESP32 qurilmasi
 
@@ -44,7 +49,7 @@ cd ESP32-Mini-Server
 
 | Fayl | Tavsif |
 |------|--------|
-| `index.html` | Professional dashboard (brauzerda oching) |
+| `ESP32-Mini-Server.html` | Professional dashboard (brauzerda oching) |
 | `main.py` | MicroPython versiyasi |
 | `wokwi_sketch/wokwi_sketch.ino` | Arduino C++ kodi |
 
