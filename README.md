@@ -10,7 +10,6 @@ ESP32 mikrokontrolleri asosida yaratilgan mini web server. IoT (Internet of Thin
 **Kurs:** 1-kurs magistranti  
 **Email:** jahon18gir@gmail.com  
 **Tel:** (95)225-50-60
-
 ## Live Demo
 
 🌐 **GitHub Pages:** https://elshoddev.github.io/ESP32-Mini-Server
