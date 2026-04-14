@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 IoT Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 24px;
+            background: linear-gradient(90deg, #00d4ff, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        .status {
+            display: inline-block;
+            background: #10b981;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .card-title {
+            font-size: 14px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        
+        /* Gauge Chart */
+        .gauge-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .gauge {
+            text-align: center;
+        }
+        .gauge-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 180deg,
+                #0f172a 0deg,
+                #f59e0b 126deg,
+                #ef4444 180deg,
+                #0f172a 180deg
+            );
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gauge-circle.humidity {
+            background: conic-gradient(
+                from 180deg,
+                #0f172a 0deg,
+                #3b82f6 144deg,
+                #00d4ff 180deg,
+                #0f172a 180deg
+            );
+        }
+        .gauge-inner {
+            width: 90px;
+            height: 90px;
+            background: #0f172a;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .gauge-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f59e0b;
+        }
+        .gauge-value.humidity {
+            color: #3b82f6;
+        }
+        .gauge-label {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .gauge-name {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #e2e8f0;
+        }
+
+        /* Bar Chart */
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 30px;
+            height: 150px;
+            margin: 20px 0;
+            padding: 0 20px;
+        }
+        .bar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .bar {
+            width: 60px;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+        }
+        .bar.temp {
+            height: 100px;
+            background: linear-gradient(180deg, #f59e0b, #ef4444);
+        }
+        .bar.hum {
+            height: 80px;
+            background: linear-gradient(180deg, #00d4ff, #3b82f6);
+        }
+        .bar::after {
+            content: attr(data-value);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .bar-icon {
+            font-size: 24px;
+        }
+        .bar-label {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* Terminal */
+        .terminal {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .terminal-line {
+            color: #10b981;
+            margin-bottom: 5px;
+        }
+        .terminal-line.error {
+            color: #ef4444;
+        }
+        .terminal-line.info {
+            color: #3b82f6;
+        }
+        .terminal-line.warn {
+            color: #f59e0b;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-on {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+        }
+        .btn-off {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        /* Stats Grid */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-item {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+            color: #64748b;
+            font-size: 12px;
+        }
+        .footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌡️ ESP32 IoT Dashboard</h1>
+        <p>Real vaqt sensor monitoring tizimi</p>
+        <span class="status">● ONLINE</span>
+    </div>
+
+    <div class="grid">
+        <!-- Sensor Gauges -->
+        <div class="card">
+            <div class="card-title">📊 Sensor Ma'lumotlari</div>
+            <div class="gauge-container">
+                <div class="gauge">
+                    <div class="gauge-circle">
+                        <div class="gauge-inner">
+                            <div class="gauge-value">24.5°C</div>
+                            <div class="gauge-label">Harorat</div>
+                        </div>
+                    </div>
+                    <div class="gauge-name">🌡️ Harorat</div>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-circle humidity">
+                        <div class="gauge-inner">
+                            <div class="gauge-value humidity">58%</div>
+                            <div class="gauge-label">Namlik</div>
+                        </div>
+                    </div>
+                    <div class="gauge-name">💧 Namlik</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="card">
+            <div class="card-title">📈 Taqqoslash Grafigi</div>
+            <div class="bar-chart">
+                <div class="bar-item">
+                    <div class="bar temp" data-value="24.5°C"></div>
+                    <div class="bar-icon">🌡️</div>
+                    <div class="bar-label">Harorat</div>
+                </div>
+                <div class="bar-item">
+                    <div class="bar hum" data-value="58%"></div>
+                    <div class="bar-icon">💧</div>
+                    <div class="bar-label">Namlik</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Info -->
+        <div class="card">
+            <div class="card-title">⚙️ Tizim Ma'lumotlari</div>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value">192.168.1.45</div>
+                    <div class="stat-label">IP Manzil</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">-67 dBm</div>
+                    <div class="stat-label">Signal Kuchi</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">45 min</div>
+                    <div class="stat-label">Ishlab turgan vaqt</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">2.3s</div>
+                    <div class="stat-label">Javob vaqti</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card">
+            <div class="card-title">🎛️ Qurilma Boshqaruvi</div>
+            <div class="controls">
+                <div class="btn btn-off">
+                    🔊 Buzzer (O'chiq)
+                </div>
+                <div class="btn btn-on">
+                    ⚡ Relay (Yoniq)
+                </div>
+            </div>
+        </div>
+
+        <!-- Terminal -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <div class="card-title">🖥️ Tizim Loglari</div>
+            <div class="terminal">
+                <div class="terminal-line">[09:42:15] ESP32 tizimi ishga tushdi</div>
+                <div class="terminal-line info">[09:42:16] WiFi ga ulanish: successful</div>
+                <div class="terminal-line">[09:42:18] IP manzil olindi: 192.168.1.45</div>
+                <div class="terminal-line warn">[09:42:20] DHT22 sensor initialized</div>
+                <div class="terminal-line">[09:42:22] Server ishga tushdi: Port 80</div>
+                <div class="terminal-line info">[09:43:01] Sensor: T=24.5°C, H=58%</div>
+                <div class="terminal-line info">[09:43:03] Sensor: T=24.6°C, H=57%</div>
+                <div class="terminal-line">[09:43:15] Relay YOQILDI (GPIO 27)</div>
+                <div class="terminal-line error">[09:43:22] Signal kuchi: -67 dBm</div>
+                <div class="terminal-line info">[09:44:01] Sensor: T=24.7°C, H=58%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🔗 <a href="https://elshoddev.github.io/ESP32-Mini-Server">GitHub Pages</a> | 📁 <a href="https://github.com/ElshodDev/ESP32-Mini-Server">GitHub Repository</a></p>
+        <p style="margin-top: 8px;">ESP32 Mini Web Server — IoT Monitoring Panel</p>
+    </div>
+</body>
+</html>
