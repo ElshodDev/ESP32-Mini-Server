@@ -11,6 +11,12 @@ ESP32 mikrokontrolleri asosida yaratilgan mini web server. IoT (Internet of Thin
 **Email:** jahon18gir@gmail.com  
 **Tel:** (95)225-50-60
 
+## Live Demo
+
+🌐 **Online ko'rish:** https://esp32-mini-server-iot.netlify.app
+
+📁 **GitHub:** https://github.com/ElshodDev/ESP32-Mini-Server
+
 ## Xususiyatlar
 
 - 🌡️ Real vaqt harorat va namlik monitoringi
