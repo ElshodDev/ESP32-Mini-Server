@@ -1,0 +1,6 @@
+# ESP32 Mini Server - Arduino Libraries
+# https://github.com/adafruit/DHT-sensor-library
+DHT sensor library
+
+# https://github.com/bblanchon/ArduinoJson
+ArduinoJson
