@@ -255,6 +255,8 @@
             padding: 20px;
             text-align: center;
             transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
         }
 
         .gauge-card:hover {
@@ -272,12 +274,18 @@
             font-size: 12px;
             color: var(--text-secondary);
             margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .gauge-value {
             font-size: 24px;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .gauge-value.temp { color: var(--accent-orange); }
