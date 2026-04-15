@@ -252,14 +252,14 @@
             backdrop-filter: blur(20px);
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px 12px 20px;
+            padding: 20px 15px 25px;
             text-align: center;
             transition: all 0.3s ease;
-            min-height: 200px;
+            min-height: 195px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
         }
 
         .gauge-card:hover {
@@ -269,25 +269,26 @@
 
         .gauge-canvas {
             width: 130px;
-            height: 75px;
-            margin-bottom: 8px;
+            height: 70px;
+            margin-bottom: 15px;
             flex-shrink: 0;
         }
 
         .gauge-label {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             white-space: nowrap;
-            line-height: 1.2;
+            line-height: 1.3;
         }
 
         .gauge-value {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             white-space: nowrap;
-            line-height: 1.2;
+            line-height: 1.3;
+            margin-top: 2px;
         }
 
         .gauge-value.temp { color: var(--accent-orange); }
